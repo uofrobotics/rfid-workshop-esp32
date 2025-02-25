@@ -216,9 +216,9 @@ void loop() {
   while(current_uid != "NONE" && correct_uid != current_uid) {
     Serial.println("incorrect");
     current_uid = gettagid();
-    digitalWrite(LED_PIN, LOW);
+    digitalWrite(LED_PIN, HIGH);
     delay(500);
-    analogWrite(LED_PIN, 50);
+    digitalWrite(LED_PIN, LOW);
     delay(500);
   }
 }
