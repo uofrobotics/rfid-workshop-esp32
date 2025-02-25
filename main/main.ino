@@ -109,7 +109,6 @@ const char index_html[] PROGMEM = R"rawliteral(
       getUID();
       getCorrectUID();
       displayUID();
-      setCorrectUID();
       scan_for_correct_card();
 
     }, 100);//milliseconds
@@ -126,15 +125,10 @@ const char index_html[] PROGMEM = R"rawliteral(
       });
     }
 
-    getCorrectCardUID() {
+    function getCorrectUID() {
       fetch('/correct_uid').then(response => response.text()).then(data => {
         correct_uid = data;
       });
-    }
-
-    function setCorrectUID(){
-      correct_uid = current_uid;
-      correct_card_scan_mode = false;
     }
 
     function scan_for_correct_card() {
@@ -211,7 +205,6 @@ void loop() {
     current_uid = gettagid();
     digitalWrite(LED_PIN, HIGH);
   }
-
 
   while(current_uid != "NONE" && correct_uid != current_uid) {
     Serial.println("incorrect");
