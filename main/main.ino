@@ -5,8 +5,8 @@
 #include <MFRC522.h>
 
 // Add your WiFi details
-const char* ssid = "uofrGuest";
-const char* password = "";
+const char* ssid = "SASKTEL0095";
+const char* password = "shupe5955";
 
 #define SS_PIN 5
 #define RST_PIN 22
@@ -91,6 +91,9 @@ const char index_html[] PROGMEM = R"rawliteral(
       background-color: #3C3D37;
       justify-content: center;
     }
+    .correct-tag {
+      padding-bottom: 5px;
+    }
   </style>
 </head>
 <body>
@@ -98,13 +101,20 @@ const char index_html[] PROGMEM = R"rawliteral(
     <h1>U of Robotics RFID Workshop</h1>
   </div>
   <p id="uid"></p>
-  <div id = "correct-tag"></div>
+  <div class="corret-tag-wrapper">
+    <div id = "correct-tag-info"></div>
+    <div id = "correct-tag"></div>
+  <div class="corret-tag-wrapper">
   <script>
+    let list_of_scanned_cards
+
     let current_uid = "NONE";
     let correct_uid = "NONE";
     let correct_card_scan_mode = true;
     // Refresh the UID 0.1 seconds
     setInterval(function() {
+
+      correct_card_scan_mode = correct_uid == "NONE";
       
       getUID();
       getCorrectUID();
@@ -121,6 +131,7 @@ const char index_html[] PROGMEM = R"rawliteral(
 
     function getUID(){
       fetch('/uid').then(response => response.text()).then(data => {
+        console.log(data);
         current_uid = data;
       });
     }
@@ -133,10 +144,27 @@ const char index_html[] PROGMEM = R"rawliteral(
 
     function scan_for_correct_card() {
       let correct_tag_element = document.getElementById("correct-tag");
+      let correct_tag_info_element = document.getElementById("correct-tag-info");
       correct_tag_element.style.backgroundColor = "#ffff00";
-      if(current_uid == "NONE") return
-      else if(current_uid == correct_uid) correct_tag_element.style.backgroundColor = "#00ff00";
-      else correct_tag_element.style.backgroundColor = "#ff0000";
+      correct_tag_info_element.style.color = "#ffff00";
+
+      if(correct_card_scan_mode) {
+        correct_tag_info_element.innerText = "Scan a card to act as the key.";
+      } else {
+        correct_tag_info_element.innerText = "Correct UID: " + correct_uid;
+      }
+
+      if(current_uid == "NONE") return;
+      else if(current_uid == correct_uid) {
+        correct_tag_element.style.backgroundColor = "#00ff00";
+        correct_tag_info_element.style.color = "#00ff00";
+        correct_tag_info_element.innerText = "Correct card!";
+      }
+      else {
+        correct_tag_element.style.backgroundColor = "#ff0000";
+        correct_tag_info_element.style.color = "#ff0000";
+        correct_tag_info_element.innerText = "Incorrect card!";
+      }
     }
 
   </script>
@@ -189,25 +217,23 @@ void setup() {
 }
 
 void loop() {
+  if(WiFi.status() != WL_CONNECTED) return;
+
   current_uid = gettagid();
   digitalWrite(LED_PIN, LOW);
-  Serial.println("Loop");
-  // user must scan a tag to set to the correct tag to continue
+  // user must scan a tag, settting the correct tag to continue
   if(current_uid == "NONE") return;
   if (set_correct_tag_mode){
-    Serial.println("correct card set");
     correct_uid = current_uid;
     set_correct_tag_mode = false;
   }
 
   while(correct_uid == current_uid){
-    Serial.println("correct");
     current_uid = gettagid();
     digitalWrite(LED_PIN, HIGH);
   }
 
   while(current_uid != "NONE" && correct_uid != current_uid) {
-    Serial.println("incorrect");
     current_uid = gettagid();
     digitalWrite(LED_PIN, HIGH);
     delay(500);
